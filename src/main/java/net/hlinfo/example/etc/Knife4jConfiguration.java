@@ -16,12 +16,17 @@ import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.builders.RequestParameterBuilder;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.schema.ModelRef;
+import springfox.documentation.schema.ScalarType;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.ApiKey;
 import springfox.documentation.service.AuthorizationScope;
 import springfox.documentation.service.Contact;
 import springfox.documentation.service.Parameter;
+import springfox.documentation.service.ParameterType;
+import springfox.documentation.service.RequestParameter;
 import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
@@ -30,27 +35,27 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 
 
 @Configuration
-@EnableSwagger2WebMvc
 @EnableKnife4j
+@EnableOpenApi
 //@Import(BeanValidatorPluginsConfiguration.class)
 @Profile({"dev", "test"})
 public class Knife4jConfiguration {
 	
-	 @Bean(value = "defaultApi2")
-    public Docket defaultApi2() {
-        Docket docket=new Docket(DocumentationType.SWAGGER_2)
+	@Bean(value = "defaultApi3")
+	public Docket defaultApi3() {
+        Docket docket=new Docket(DocumentationType.OAS_30)
                 .apiInfo(apiInfo())
                   //分组名称
-                .groupName("demoapi")
+                .groupName("示例")
                 .select()
                    //这里指定Controller扫描包路径
                 .apis(RequestHandlerSelectors.basePackage("net.hlinfo.example.controller"))
                 .paths(PathSelectors.any())
                 .build()
-                .globalOperationParameters(getGlobalRequestParameters());
+                .globalRequestParameters(getGlobalRequestParametersV3());
         return docket;
     }
-	 private ApiInfo apiInfo(){
+	private ApiInfo apiInfo(){
         return new ApiInfoBuilder()
                 .title("Spring Boot示例工程API文档")
                 .description("Spring Boot示例工程 RESTful APIs")
@@ -92,22 +97,8 @@ public class Knife4jConfiguration {
         return CollectionUtil.newArrayList(new SecurityReference("BearerToken1", authorizationScopes));
     }
     
-	//生成全局通用参数
-	private List<Parameter> getGlobalRequestParameters() {
-	    List<Parameter> parameters = new ArrayList<>();
-	    parameters.add(new ParameterBuilder()
-	            .name("token")
-	            .description("接口校验参数")
-	            .modelRef(new ModelRef("String"))
-	            .required(false)
-	            .parameterType("header")
-	            .required(false)
-	            .build());
-	     return parameters;
-    }
-	
 	//生成全局通用参数 v3.x
-	/*private List<RequestParameter> getGlobalRequestParameters() {
+	private List<RequestParameter> getGlobalRequestParametersV3() {
 	    List<RequestParameter> parameters = new ArrayList<>();
 	    parameters.add(new RequestParameterBuilder()
 	            .name("token")
@@ -118,5 +109,5 @@ public class Knife4jConfiguration {
 	            .required(false)
 	            .build());
 	     return parameters;
-    }*/
+    }
 }

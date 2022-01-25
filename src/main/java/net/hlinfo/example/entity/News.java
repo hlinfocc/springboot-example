@@ -1,68 +1,117 @@
 package net.hlinfo.example.entity;
 
-import java.io.Serializable;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.nutz.dao.entity.annotation.ColDefine;
+import org.nutz.dao.entity.annotation.ColType;
+import org.nutz.dao.entity.annotation.Column;
+import org.nutz.dao.entity.annotation.Comment;
+import org.nutz.dao.entity.annotation.Default;
+import org.nutz.dao.entity.annotation.Table;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel("新闻信息")
-@Entity
-@Table(name = "news")
-@org.hibernate.annotations.Table(appliesTo = "news",comment="新闻信息")
-public class News implements Serializable {
+@Comment("新闻信息")
+@Table("news")
+public class News extends BaseEntity{
 	private static final long serialVersionUID = 1L;
-	
-	@Id //这是一个主键
-	@GeneratedValue(strategy = GenerationType.IDENTITY)//自增主键
-	@org.nutz.dao.entity.annotation.Id
-	@Column(length = 255,columnDefinition="comment '标题'")
-	@ApiModelProperty("主键")
-	private Integer id;
-	
-	@Column(name="news_title",length = 255,columnDefinition="comment '标题'")
+		
+	@Column("news_title")
+	@ColDefine(type=ColType.TEXT)
+	@Comment(value="标题")
 	@ApiModelProperty(value="标题")
+	@NotEmpty(message = "标题不能为空")
 	private String newsTitle;
 	
-	@Column(name="news_auther",length = 100,columnDefinition="comment '作者'")
+	@Column(value ="news_auther")
+	@ColDefine(type=ColType.VARCHAR,width = 100)
+	@Comment(value="作者")
 	@ApiModelProperty(value="作者")
 	private String newsAuther;
 	
-	@Column(name="news_origin")
+	@Column(value="news_origin")
+	@ColDefine(type=ColType.TEXT)
+	@Comment(value="来源")
 	@ApiModelProperty(value="来源")
 	private String newsOrigin;
 	
-	@Column(name="menu_id",length = 32,columnDefinition="comment '分类ID'")
+	@Column(value="menu_id")
+	@ColDefine(type=ColType.VARCHAR,width = 36)
+	@Comment(value="分类ID")
 	@ApiModelProperty(value="分类ID")
+	@NotEmpty(message = "分类ID不能为空")
 	private String menuId;
 	
-	@Column(name="menu_name",length = 255,columnDefinition="comment '分类'")
+	@Column(value="menu_name")
+	@ColDefine(type=ColType.TEXT)
+	@Comment(value="分类")
 	@ApiModelProperty(value="分类")
+	@NotEmpty(message = "分类不能为空")
 	private String menuName;
 	
-	@Column(name="summary",length = 200,columnDefinition="comment '摘要(200个字符以内)'")
+	@Column(value="summary")
+	@ColDefine(type=ColType.VARCHAR,width = 200)
+	@Comment(value="摘要(200个字符以内)")
 	@ApiModelProperty(value="摘要(200个字符以内)")
+	@NotEmpty(message = "摘要不能为空")
+	@Size(min = 10,max = 200)
 	private String summary;
+	
+	@Column(value="titleimg")
+	@ColDefine(type=ColType.TEXT)
+	@Comment(value="标题图")
+	@ApiModelProperty(value="标题图")
+	private String titleimg;
 	
 	/*@Column(name="img_url_list")
 	@ApiModelProperty(value="内容中的图片地址，个多用英文逗号隔开")
 	private JSONArray imgUrlList;*/
 	
-	@Column(name="content",length = 200,columnDefinition="text null comment '内容'")
+	@Column(value="content")
+	@ColDefine(type=ColType.TEXT)
+	@Comment(value="内容")
 	@ApiModelProperty(value="内容")
+	@NotEmpty(message = "内容不能为空")
 	private String content;
 	
-	@Column(name="push_date",length = 200,columnDefinition="comment '发布日期(格式为:yyyy-mm-dd)'")
+	@Column(value="push_date")
+	@ColDefine(type=ColType.VARCHAR,width = 25)
+	@Comment(value="发布日期(格式为:yyyy-mm-dd)")
 	@ApiModelProperty(value="发布日期(格式为:yyyy-mm-dd)")
+	@NotEmpty(message = "发布日期不能为空")
 	private String pushDate;
 
+	@Column(value="status")
+	@ColDefine(type=ColType.INT,customType = "integer")
+	@Comment(value="状态：0草稿，1发布，2撤稿")
+	@ApiModelProperty(value="状态：0草稿，1发布，2撤稿")
+	@Default("0")
+	@Min(value = 0)
+	@Max(value = 2)
+	private int status;
 	
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public String getTitleimg() {
+		return titleimg;
+	}
+
+	public void setTitleimg(String titleimg) {
+		this.titleimg = titleimg;
+	}
+
 	public String getNewsTitle() {
 		return newsTitle;
 	}

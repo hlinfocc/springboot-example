@@ -1420,23 +1420,28 @@ public class Funs {
 	 * 将实体对象的属性转为Pgsql查询语句的select 和from中的字段
 	 * prex.user_name as fieldPrexuserName
 	 * @param cls 实体class
-	 * @param prex 数据字段前缀
+	 * @param prex 表名或表的别名
 	 * @param fieldPrex 字段前缀
+	 * @param isExtends 是否有继承
 	 * @return
 	 */
 	public static String vo2PgsqlField(Class<?> cls
 			, String prex
-			, String fieldPrex) {
+			, String fieldPrex,boolean isExtends) {
 		prex = Funs.isBlank(prex)?"":prex+".";
 		fieldPrex = Funs.isBlank(fieldPrex)?"":fieldPrex;
+		
 		List<Field> fs = new ArrayList<>();
-		Field[] cfs = cls.getDeclaredFields();
-		fs.addAll(Arrays.asList(cfs));
-		Field[] pfs = {};
-		if(cls.getSuperclass().getName() == BaseEntity.class.getName()) {
-			pfs = cls.getSuperclass().getDeclaredFields();
+		if(isExtends) {
+			do {
+				Field[] pfs = cls.getDeclaredFields();
+				fs.addAll(Arrays.asList(pfs));
+					cls = cls.getSuperclass();
+			}while(!Strings.equals(cls.getName(), Object.class.getName()));
+		}else {
+			Field[] pfs = cls.getDeclaredFields();
+			fs.addAll(Arrays.asList(pfs));
 		}
-		fs.addAll(Arrays.asList(pfs));
 		if(fs.size() <= 0) {
 			return "";
 		}
@@ -1465,6 +1470,8 @@ public class Funs {
 		}
 		return sb.toString();
 	}
+	
+	
 	/**
 	 * 将实体对象的属性转为Pgsql查询语句的select 和from中的字段
 	 * prex.user_name as fieldPrexuserName
@@ -1473,23 +1480,30 @@ public class Funs {
 	 * @param fieldPrex 字段前缀
 	 * @param filterField 需要过滤的字段，格式为pojo实体名,多个用竖线|分隔，如：userName|userPasswd
 	 * @param allowField 只允许的字段，格式为pojo实体名,多个用竖线|分隔，如：userName|userPasswd
+	 * @param isExtends 是否存在继承的类
 	 * @return
 	 */
 	public static String vo2PgsqlField(Class<?> cls
 			, String alias
 			, String fieldPrex
 			,String filterField
-			,String allowField) {
-		alias = Funs.isBlank(alias)?"":alias+".";
+			,String allowField
+			,boolean isExtends) {
+		alias = Funs.isBlank(alias) ? "" : alias+".";
 		fieldPrex = Funs.isBlank(fieldPrex)?"":fieldPrex;
 		List<Field> fs = new ArrayList<>();
-		Field[] cfs = cls.getDeclaredFields();
-		fs.addAll(Arrays.asList(cfs));
-		Field[] pfs = {};
-		if(cls.getSuperclass().getName() == BaseEntity.class.getName()) {
-			pfs = cls.getSuperclass().getDeclaredFields();
+		
+		if(isExtends) {
+			do {
+				Field[] dfs = cls.getDeclaredFields();
+				fs.addAll(Arrays.asList(dfs));
+					cls = cls.getSuperclass();
+			}while(!equals(cls.getName(), Object.class.getName()));
+		}else {
+			Field[] dfs = cls.getDeclaredFields();
+			fs.addAll(Arrays.asList(dfs));
 		}
-		fs.addAll(Arrays.asList(pfs));
+		
 		if(fs.size() <= 0) {
 			return "";
 		}

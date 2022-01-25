@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:postgresql://127.0.0.1:5432/example
     username: postgres
-    password: 123456
+    password: htcdc.com
     driver-class-name: org.postgresql.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     initialSize: 5
@@ -49,8 +49,13 @@ mybatis:
   mapper-locations: classpath:mybatis/mapper/*.xml
   type-aliases-package: net.hlinfo.example.entity
 
+beetlsql:
+  sqlManagers: sqlManager1
+  sqlManager1: 
+    ds: druidDataSource
+    dev: true
 jwt:
-  key: 966d86up243f # jwt的密钥
+  jwtkey: 966d86up243f # jwt的密钥
   ttlday: 1000 #jwt过期时间 (天)
 
 upload:
@@ -62,6 +67,14 @@ knife4j:
   production: false
 
 logging:
+  pattern: 
+    console: "%d %p %C %m%n"
   level: 
-    com: debug
-    org: debug
+    net: 
+      hlinfo: debug
+    com: 
+      github:
+        xiaoymin: error
+    org: error
+    springfox:
+      documentation: error

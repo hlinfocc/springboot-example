@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConfigurationProperties(prefix="upload",ignoreInvalidFields=true, ignoreUnknownFields=true)
 public class FileUploadConf {
-	@Value("${upload.savePath}")
 	private String savePath;
-	@Value("${upload.baseUrl}")
 	private String baseUrl;
 	
 	public String getSavePath() {

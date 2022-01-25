@@ -12,16 +12,20 @@ import org.nutz.dao.entity.annotation.TableIndexes;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import net.hlinfo.example.entity.adaptor.StringArrayValueAdaptor;
+import net.hlinfo.opt.Func;
 
 @Table("user_info")
 @ApiModel("管理员信息")
 @Comment("管理员信息")
 @TableIndexes({
 	@Index(fields = {"account"},unique=true),
-	@Index(fields= {"state"},unique=false)
+	@Index(fields= {"ststus"},unique=false)
 })
 public class UserInfo extends BaseEntity{
 	private static final long serialVersionUID = 1L;
@@ -29,7 +33,7 @@ public class UserInfo extends BaseEntity{
 	* 登录账号
 	*/
 	@Column("account")
-	@ColDefine(type=ColType.VARCHAR, width=50)
+	@ColDefine(type=ColType.TEXT)
 	@Comment(value="登录账号")
 	@ApiModelProperty(value="登录账号")
 	private String account;
@@ -61,12 +65,12 @@ public class UserInfo extends BaseEntity{
 	@ApiModelProperty(value="备注")
 	private String remark;
 	
-	@Column("state")
+	@Column("ststus")
 	@ColDefine(notNull=false,type=ColType.INT, width=3)
 	@Comment(value="状态: 1 禁用 0 启用")
 	@ApiModelProperty(value="状态: 1 禁用 0启用")
 	@Default("0")
-	private int state;
+	private int ststus;
 	
 	@Column("user_level")
 	@ColDefine(type=ColType.INT, width=3)
@@ -75,6 +79,12 @@ public class UserInfo extends BaseEntity{
 	@Default("0")
 	private int userLevel;
 	
+	@Column("roles")
+	@ColDefine(type=ColType.AUTO, customType = "character varying[]",adaptor=StringArrayValueAdaptor.class)
+	@Comment(value="角色：admin管理员，user普通用户")
+	@ApiModelProperty(value="角色：admin管理员，user普通用户")
+	@Default("admin")
+	private String[] roles;
 	
 	@Column("last_login_time")
 	@ColDefine(type=ColType.VARCHAR, width=25)
@@ -88,18 +98,44 @@ public class UserInfo extends BaseEntity{
 	@ApiModelProperty(value="上一次登录ip")
 	private String lastLoginIp;
 	
-	@Column("logintime")
+	@Column("this_login_time")
 	@ColDefine(type=ColType.VARCHAR, width=25)
 	@Comment(value="这一次登录时间")
 	@ApiModelProperty(value="这一次登录时间")
-	private String logintime;
+	private String thisLoginTime;
 	
-	@Column("loginip")
+	@Column("this_login_ip")
 	@ColDefine(type=ColType.TEXT)
 	@Comment(value="这一次登录ip")
 	@ApiModelProperty(value="这一次登录ip")
-	private String loginip;
+	private String thisLoginIp;
 	
+	
+	/**
+	 * 初始化设置登录时间IP等信息
+	 * @param ip 当前登录IP
+	 * @param insert 是否新增
+	 */
+	public void resetLoginInfo(String ip,boolean insert) {
+		this.setLastLoginIp(insert?ip:this.getThisLoginIp());
+		this.setLastLoginTime(insert?Func.Times.now():this.getThisLoginTime());
+		this.setThisLoginIp(ip);
+		this.setThisLoginTime(Func.Times.now());
+		if(insert) {
+			this.init();
+		}else {
+			this.updated();
+		}
+	}
+	
+	public String[] getRoles() {
+		return roles;
+	}
+
+	public void setRoles(String[] roles) {
+		this.roles = roles;
+	}
+
 	public int getUserLevel() {
 		return userLevel;
 	}
@@ -139,13 +175,14 @@ public class UserInfo extends BaseEntity{
 		this.remark = remark;
 	}
 	
-	public int getState() {
-		return state;
+	public int getStstus() {
+		return ststus;
 	}
-	public void setState(int state) {
-		this.state = state;
+
+	public void setStstus(int ststus) {
+		this.ststus = ststus;
 	}
-	
+
 	public String getLastLoginTime() {
 		return lastLoginTime;
 	}
@@ -158,16 +195,19 @@ public class UserInfo extends BaseEntity{
 	public void setLastLoginIp(String lastLoginIp) {
 		this.lastLoginIp = lastLoginIp;
 	}
-	public String getLogintime() {
-		return logintime;
+	public String getThisLoginTime() {
+		return thisLoginTime;
 	}
-	public void setLogintime(String logintime) {
-		this.logintime = logintime;
+
+	public void setThisLoginTime(String thisLoginTime) {
+		this.thisLoginTime = thisLoginTime;
 	}
-	public String getLoginip() {
-		return loginip;
+
+	public String getThisLoginIp() {
+		return thisLoginIp;
 	}
-	public void setLoginip(String loginip) {
-		this.loginip = loginip;
+
+	public void setThisLoginIp(String thisLoginIp) {
+		this.thisLoginIp = thisLoginIp;
 	}
 }

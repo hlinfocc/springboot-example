@@ -16,11 +16,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.nutz.json.Json;
 import org.nutz.lang.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import net.hlinfo.example.etc.JwtConfig;
 import net.hlinfo.example.opt.Logininfo;
 import net.hlinfo.example.utils.Funs;
 import net.hlinfo.example.utils.JwtUtil;
@@ -29,10 +31,8 @@ import net.hlinfo.example.utils.Resp;
 @WebFilter(filterName = "authFilter",urlPatterns = {"/*"})
 @Component
 public class AuthFilter implements Filter {
-	@Value("${jwt.ttlday}")
-	private long ttlday;
-	@Value("${jwt.key}")
-	private String jwtkey;
+	@Autowired
+	private JwtConfig jwt;
 	
 	@Value("${spring.profiles.active}")
 	private String profiles;
@@ -59,7 +59,7 @@ public class AuthFilter implements Filter {
         }else {
 	       if(Strings.isNotBlank(token) && !"undefined".equals(token) && !"null".equals(token)) {
 				try {
-					Claims claims = JwtUtil.parseJWT(token, jwtkey);
+					Claims claims = JwtUtil.parseJWT(token, jwt.getJwtkey());
 					int userLevel = Funs.string2int(claims.get("userLevel"));
 					int utype = Funs.string2int(claims.get("type"));
 					String orgid = (String)claims.get("orgid");

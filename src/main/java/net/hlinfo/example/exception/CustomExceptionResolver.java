@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.nutz.json.Json;
 import org.nutz.lang.util.NutMap;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -63,6 +64,18 @@ public class CustomExceptionResolver {
 		e.printStackTrace();
 		return new Resp<>().error(msg).data(errorMaps);
 		
+	}
+	
+	/**
+	 * 拒绝访问异常
+	 * @param e
+	 * @param req
+	 * @return
+	 */
+	@ExceptionHandler(value=AccessDeniedException.class)
+	public Object accessDeniedException(AccessDeniedException e, HttpServletRequest req) {
+		e.printStackTrace();
+		return new Resp<>().error(e.getMessage());
 	}
 	/**
 	 * 捕获上传文件异常

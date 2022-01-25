@@ -14,6 +14,7 @@ import org.nutz.json.Json;
 import org.nutz.lang.Strings;
 import org.nutz.lang.util.NutMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,10 +27,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import net.hlinfo.example.entity.UserInfo;
-import net.hlinfo.example.mybatis.service.MybatisService;
 import net.hlinfo.example.utils.Funs;
 import net.hlinfo.example.utils.QueryResult;
 import net.hlinfo.example.utils.Resp;
+import net.hlinfo.mybatis.service.MybatisService;
+import net.hlinfo.opt.Func;
 
 @Api(tags = "管理员模块")
 @RestController
@@ -41,6 +43,9 @@ public class UserInfoController extends BaseController {
 
 	@Autowired
 	private MybatisService MS;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	@SuppressWarnings("unchecked")
 	@ApiOperation(value="添加/编辑管理员")
@@ -68,7 +73,7 @@ public class UserInfoController extends BaseController {
 			count = dao.updateIgnoreNull(userInfo);
 		}else {
 			userInfo.setId(Funs.UUID());
-			userInfo.setState(0);
+			userInfo.setStstus(0);
 			userInfo.setCreatetime(new Date());
 			userInfo.setUpdatetime(new Date());
 			count = dao.insert(userInfo)!=null?1:0;
@@ -95,10 +100,10 @@ public class UserInfoController extends BaseController {
 			return new Resp().error("新密码不能空");
 		}
 		UserInfo  UserInfo = dao.fetch(UserInfo.class, id);
-		if(!Funs.passwdMatches(oldPwd, UserInfo.getPassword())) {
+		if(!passwordEncoder.matches(oldPwd, UserInfo.getPassword())) {
 			return new Resp().error("旧密码错误，请重新输入");
 		}
-		UserInfo.setPassword(Funs.passwdEncoder(newPwd));
+		UserInfo.setPassword(passwordEncoder.encode(newPwd));
 		int n =  dao.update(UserInfo);
 		if(n > 0) {
 			return new Resp().ok("操作成功", UserInfo);
@@ -122,7 +127,7 @@ public class UserInfoController extends BaseController {
 		if(UserInfo==null) {
 			return new Resp().error("用户不存在");
 		}
-		UserInfo.setPassword(Funs.passwdEncoder(newPwd));
+		UserInfo.setPassword(passwordEncoder.encode(newPwd));
 		int n =  dao.update(UserInfo);
 		if(n > 0) {
 			return new Resp().ok("重置成功", UserInfo);
@@ -135,7 +140,7 @@ public class UserInfoController extends BaseController {
 	@GetMapping("/list")
 	public Resp<QueryResult<UserInfo>> list(@ApiParam("姓名查找")@RequestParam(name="username", defaultValue = "") String username
 			, @ApiParam("账号")@RequestParam(name="account", defaultValue = "") String account
-			, @ApiParam("状态默认为-1, -1全部 1禁用 0启用")@RequestParam(name="state", defaultValue = "-1") int state
+			, @ApiParam("状态默认为-1, -1全部 1禁用 0启用")@RequestParam(name="status", defaultValue = "-1") int status
 			, @ApiParam("页数")@RequestParam(name="page", defaultValue = "1") int page
 			, @ApiParam("每页显示条数")@RequestParam(name="limit", defaultValue = "10") int limit){
 		Cnd cnd = Cnd.where("isdelete", "=", 0);
@@ -146,8 +151,8 @@ public class UserInfoController extends BaseController {
 		if(Strings.isNotBlank(account)) {
 			cnd.and("account", "like", "%" + account + "%");
 		}
-		if(state != -1) {
-			cnd.and("state", "=", state);
+		if(status != -1) {
+			cnd.and("status", "=", status);
 		}
 		pager.setRecordCount(dao.count(UserInfo.class, cnd));
 		List<UserInfo> list = dao.query(UserInfo.class
@@ -161,8 +166,14 @@ public class UserInfoController extends BaseController {
 		if(Strings.isBlank(id)) {
 			return new Resp().error("id不能为空");
 		}
-		int num = dao.delete(UserInfo.class, id);
-		if(num > 0) {
+		UserInfo obj = dao.fetch(UserInfo.class, id);
+		if(obj==null) {
+			return new Resp().error("删除内容不存在");
+		}
+		obj.setAccount(obj.getAccount()+Func.Times.nowNumber());
+		obj.deleted();
+		int rs = dao.update(obj);
+		if(rs > 0) {
 			return new Resp().ok("删除成功");
 		}else {
 			return new Resp().error("删除失败");

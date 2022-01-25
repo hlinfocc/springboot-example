@@ -5,8 +5,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +23,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import net.hlinfo.example.utils.Funs;
 import net.hlinfo.example.utils.Resp;
+import net.hlinfo.opt.HashUtils;
 
 @Api(tags="首页")
 @RequestMapping("/")
@@ -26,7 +32,6 @@ public class IndexController extends BaseController{
 	@Value("${spring.profiles.active}")
 	private String profile;
 	
-		
 	@ApiOperation("首页-欢迎页面")
 	@GetMapping("/")
 	public String index(){
@@ -41,8 +46,12 @@ public class IndexController extends BaseController{
 	
 	@ApiOperation("读取jar包同级目录的txt文件")
 	@GetMapping("/{txtfile:\\w+}.txt")
-	public String getTxtFile(@ApiParam("文件名") @PathVariable String txtfile){
+	public String getTxtFile(@ApiParam("文件名") @PathVariable String txtfile
+			,HttpServletRequest request,HttpServletResponse response){
 		txtfile = txtfile + ".txt";
+		response.reset();
+	   response.setContentType("text/plain");
+	   response.setHeader("Content-Type", "text/plain;charset=utf-8");
 		ApplicationHome jarHome = new ApplicationHome(getClass());
 		File jarF = jarHome.getSource();
 		String fileName = jarF.getParentFile().toString()+File.separatorChar+txtfile;
